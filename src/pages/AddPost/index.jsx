@@ -11,18 +11,16 @@ import { Navigate, Link, useNavigate, useParams } from "react-router-dom";
 import axios from "../../axois";
 
 export const AddPost = () => {
-  const { id } = useParams()
+  const { id } = useParams();
   const navigate = useNavigate();
   const isAuth = useSelector(selectIsAuth);
   const [text, setText] = React.useState("");
   const [title, setTitle] = React.useState("");
   const [tags, setTags] = React.useState("");
   const [imageUrl, setImageUrl] = React.useState("");
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [ setIsLoading] = React.useState(false);
   const inputFileRef = React.useRef(null);
-  const isEditing = Boolean(id)
-
-
+  const isEditing = Boolean(id);
 
   const handleChangeFile = async (event) => {
     try {
@@ -48,10 +46,12 @@ export const AddPost = () => {
         title,
         imageUrl,
         tags,
-        text
+        text,
       };
-      const { data } = isEditing ? await axios.patch(`/posts/${id}`, fields) : await axios.post("/posts", fields);
-      const _id =  isEditing ? id : data._id;
+      const { data } = isEditing
+        ? await axios.patch(`/posts/${id}`, fields)
+        : await axios.post(`/posts`, fields);
+      const _id = isEditing ? id : data._id;
       navigate(`/posts/${_id}`);
     } catch (e) {
       console.warn(e);
@@ -64,18 +64,20 @@ export const AddPost = () => {
   }, []);
   React.useEffect(() => {
     if (id) {
-      axios.get(`/posts/${id}`).then(({data}) => {
-        setTitle(data.title);
-        setText(data.text);
-        setTags(data.tags);
-        setImageUrl(data.imageUrl);
-      }).catch((err)=>{
-        console.log(err)
-        alert('Ошибка при получении статьи')
-      })
+      axios
+        .get(`/posts/${id}`)
+        .then(({ data }) => {
+          setTitle(data.title);
+          setText(data.text);
+          setTags(data.tags.join(','));
+          setImageUrl(data.imageUrl);
+        })
+        .catch((err) => {
+          console.log(err);
+          alert("Ошибка при получении статьи");
+        });
     }
-  }, [])
-
+  }, [id]);
 
   const options = React.useMemo(
     () => ({
@@ -86,8 +88,8 @@ export const AddPost = () => {
       status: false,
       autosave: {
         enabled: true,
-        delay: 1000
-      }
+        delay: 1000,
+      },
     }),
     []
   );
@@ -97,34 +99,63 @@ export const AddPost = () => {
 
   return (
     <Paper style={{ padding: 30 }}>
-      <Button onClick={() => inputFileRef.current.click()} variant="outlined" size="large">
+      <Button
+        onClick={() => inputFileRef.current.click()}
+        variant="outlined"
+        size="large"
+      >
         Загрузить превью
       </Button>
-      <input ref={inputFileRef} type="file" onChange={handleChangeFile} hidden />
+      <input
+        ref={inputFileRef}
+        type="file"
+        onChange={handleChangeFile}
+        hidden
+      />
       {imageUrl && (
-        <><Button variant="contained" color="error" onClick={onClickRemoveImage}>
-          Удалить
-        </Button>
-          <img className={styles.image} src={`http://localhost:4444${imageUrl}`} alt="Uploaded" /></>
+        <>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={onClickRemoveImage}
+          >
+            Удалить
+          </Button>
+          <img
+            className={styles.image}
+            src={`${process.env.REACT_APP_API_URL}${imageUrl}`}
+            alt="Uploaded"
+          />
+        </>
       )}
 
       <br />
       <br />
       <TextField
         value={title}
-        onChange={e => setTitle(e.target.value)}
+        onChange={(e) => setTitle(e.target.value)}
         classes={{ root: styles.title }}
         variant="standard"
         placeholder="Заголовок статьи..."
         fullWidth
       />
-      <TextField value={tags}
-                 onChange={e => setTags(e.target.value)} classes={{ root: styles.tags }} variant="standard"
-                 placeholder="Тэги" fullWidth />
-      <SimpleMDE className={styles.editor} value={text} onChange={onChange} options={options} />
+      <TextField
+        value={tags}
+        onChange={(e) => setTags(e.target.value)}
+        classes={{ root: styles.tags }}
+        variant="standard"
+        placeholder="Тэги"
+        fullWidth
+      />
+      <SimpleMDE
+        className={styles.editor}
+        value={text}
+        onChange={onChange}
+        options={options}
+      />
       <div className={styles.buttons}>
         <Button onClick={onSubmit} size="large" variant="contained">
-          { isEditing ? 'Сохранить' : "Опубликовать"}
+          {isEditing ? "Сохранить" : "Опубликовать"}
         </Button>
         <Link to="/">
           <Button size="large">Отмена</Button>

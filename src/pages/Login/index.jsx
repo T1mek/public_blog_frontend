@@ -13,7 +13,7 @@ export const Login = () => {
   const isAuth = useSelector(selectIsAuth);
   const dispatch = useDispatch();
   const {
-    register, handleSubmit, setError, formState: { errors, isValid }
+    register, handleSubmit,  formState: { errors, isValid }
   } = useForm({
     defaultValues: {
       email: "4234test@gmail.com", password: "1234522"
